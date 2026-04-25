@@ -16,13 +16,19 @@ export class AwsCloudPlatformStack extends cdk.Stack {
       stringValue: 'Hello from CI/CD Automated Infrastructure!',
     });
 
-    // 2. Lambda Function
+    // 2. Lambda Function (fixed: using logGroup instead of logRetention)
+    const logGroup = new logs.LogGroup(this, 'WorkflowTaskLogGroup', {
+      logGroupName: '/aws/lambda/WorkflowTask',
+      retention: logs.RetentionDays.ONE_WEEK,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
     const workflowLambda = new lambda.Function(this, 'WorkflowTask', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda'),
       timeout: cdk.Duration.seconds(30),
-      logRetention: logs.RetentionDays.ONE_WEEK,
+      logGroup: logGroup,
     });
 
     // Grant Lambda permission to read SSM
@@ -52,10 +58,11 @@ export class AwsCloudPlatformStack extends cdk.Stack {
       resultPath: '$.error',
     });
 
-    const definition = startState.next(invokeTask);
-
+    // Fixed: using definitionBody instead of deprecated definition
     new stepfunctions.StateMachine(this, 'MyStateMachine', {
-      definition,
+      definitionBody: stepfunctions.DefinitionBody.fromChainable(
+        startState.next(invokeTask)
+      ),
       timeout: cdk.Duration.minutes(5),
       tracingEnabled: true,
     });
