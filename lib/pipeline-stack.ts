@@ -22,7 +22,7 @@ export class PipelineStack extends cdk.Stack {
         phases: {
           install: {
             commands: [
-              'npm install -g aws-cdk',
+              'npm install -g aws-cdk typescript ts-node',
               'npm install',
             ],
           },
