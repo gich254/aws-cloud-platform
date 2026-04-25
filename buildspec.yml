@@ -1,17 +1,22 @@
 version: 0.2
+runtime-versions:
+  nodejs: 20  # Ensure Node 20 is still requested
 
 phases:
   install:
-    runtime-versions:
-      nodejs: 20
     commands:
-      - npm install -g aws-cdk
+      - echo "Installing dependencies..."
       - npm ci
-      - cdk acknowledge 34635
   build:
     commands:
+      # 1. Compile TypeScript to JavaScript
+      - echo "Compiling TypeScript to JavaScript..."
       - npm run build
-      - cdk deploy AwsCloudPlatformStack --require-approval never
-  post_build:
-    commands:
-      - echo "Build completed"
+      # 2. Verify the compiled JS file exists
+      - echo "Verifying compiled files..."
+      - ls -la lib/
+      - ls -la bin/
+      # 3. Run the compiled JavaScript file directly (NOT via ts-node)
+      #    Replace 'aws-cloud-platform' with your actual main filename without extension
+      - echo "Deploying stack..."
+      - node bin/aws-cloud-platform.js
