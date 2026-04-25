@@ -1,27 +1,17 @@
 version: 0.2
-runtime-versions:
-  nodejs: 20  # This is the key change - ensure Node.js 20 is used
 
 phases:
   install:
+    runtime-versions:
+      nodejs: 20
     commands:
-      - echo Node.js version: $(node -v)
+      - npm install -g aws-cdk
       - npm ci
-      - npx cdk acknowledge 34635  # Acknowledge the CDK warning
-  pre_build:
-    commands:
-      - echo Logging in to Amazon ECR...
-      - aws --version
-      - $(aws ecr get-login --region $AWS_DEFAULT_REGION)
+      - cdk acknowledge 34635
   build:
     commands:
-      - echo Build started on `date`
       - npm run build
-      - echo Deploying CDK Stack...
       - cdk deploy AwsCloudPlatformStack --require-approval never
   post_build:
     commands:
-      - echo Build completed on `date`
-artifacts:
-  files:
-    - '**/*'
+      - echo "Build completed"
