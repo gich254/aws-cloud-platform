@@ -3,6 +3,7 @@ import * as codepipeline from 'aws-cdk-lib/aws-codepipeline';
 import * as codepipeline_actions from 'aws-cdk-lib/aws-codepipeline-actions';
 import * as codebuild from 'aws-cdk-lib/aws-codebuild';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 export class PipelineStack extends cdk.Stack {
@@ -10,37 +11,47 @@ export class PipelineStack extends cdk.Stack {
     super(scope, id, props);
 
     const githubToken = secretsmanager.Secret.fromSecretNameV2(
-      this, 'GitHubToken', 'github-token'
+      this,
+      'GitHubToken',
+      'github-token'
     );
 
     const sourceOutput = new codepipeline.Artifact();
     const buildOutput = new codepipeline.Artifact();
 
     const buildProject = new codebuild.PipelineProject(this, 'BuildProject', {
+      environment: {
+        buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+        computeType: codebuild.ComputeType.SMALL,
+      },
       buildSpec: codebuild.BuildSpec.fromObject({
         version: '0.2',
         phases: {
           install: {
+            runtime_versions: {
+              nodejs: 20,
+            },
             commands: [
-              'npm install -g aws-cdk typescript ts-node',
+              'npm install -g aws-cdk',
               'npm install',
             ],
           },
           build: {
             commands: [
-              'npm run build',
-              'cdk deploy AwsCloudPlatformStack --require-approval never',
+              'npx tsc',
+              'cdk deploy AwsCloudPlatformStack --require-approval never --app "node bin/aws-cloud-platform.js"',
             ],
           },
         },
       }),
-      environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
-      },
     });
 
-    buildProject.role?.addManagedPolicy(
-      cdk.aws_iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')
+    buildProject.addToRolePolicy(
+      new iam.PolicyStatement({
+        actions: ['*'],
+        resources: ['*'],
+        effect: iam.Effect.ALLOW,
+      })
     );
 
     new codepipeline.Pipeline(this, 'AppPipeline', {
