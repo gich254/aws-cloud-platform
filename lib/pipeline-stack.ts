@@ -24,26 +24,7 @@ export class PipelineStack extends cdk.Stack {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         computeType: codebuild.ComputeType.SMALL,
       },
-      buildSpec: codebuild.BuildSpec.fromObject({
-        version: '0.2',
-        phases: {
-          install: {
-            runtime_versions: {
-              nodejs: 20,
-            },
-            commands: [
-              'npm install -g aws-cdk',
-              'npm install',
-            ],
-          },
-          build: {
-            commands: [
-              'npx tsc',
-              'cdk deploy AwsCloudPlatformStack --require-approval never --app "node bin/aws-cloud-platform.js"',
-            ],
-          },
-        },
-      }),
+      buildSpec: codebuild.BuildSpec.fromSourceFilename('buildspec.yml'),
     });
 
     buildProject.addToRolePolicy(

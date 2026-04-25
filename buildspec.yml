@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+      - apt-get install -y nodejs
+      - node --version
+      - npm install -g aws-cdk
+      - npm install
+  build:
+    commands:
+      - npx tsc
+      - node --version
+      - cdk acknowledge 34635
+      - cdk deploy AwsCloudPlatformStack --require-approval never --app "node bin/aws-cloud-platform.js"
