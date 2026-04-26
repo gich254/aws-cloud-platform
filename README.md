@@ -1,14 +1,54 @@
-# Welcome to your CDK TypeScript project
+# AWS Multi-Account, Automated, and Governed Cloud Platform
 
-This is a blank project for CDK development with TypeScript.
+## Project Overview
+This project demonstrates how to build a robust, automated cloud platform using Infrastructure as Code (IaC) principles. The solution includes a CI/CD pipeline that deploys a serverless workflow using AWS Step Functions and AWS Lambda, with configuration management through AWS Systems Manager (SSM).
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Architecture
+- **Infrastructure as Code**: AWS CDK (Cloud Development Kit) to declare all AWS resources
+- **CI/CD Automation**: CodePipeline & CodeBuild automatically deploy infrastructure when code is updated
+- **Workflow Orchestration**: AWS Step Functions execute a multi-step process with built-in error handling and retries
+- **Compute & Config**: Lambda functions execute workflow tasks and retrieve configuration data from SSM Parameter Store
 
-## Useful commands
+## Implementation Details
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+### Step Functions Workflow
+The workflow consists of:
+1. A Wait state that pauses for 5 seconds
+2. A Task state that invokes a Lambda function
+3. Error handling with retries (max 2 attempts)
+
+### Lambda Function
+The Lambda function:
+- Retrieves a greeting message from SSM Parameter Store
+- Logs the retrieved value
+- Returns a success response with the greeting
+
+### CI/CD Pipeline
+The pipeline:
+- Triggers on commits to the main branch of the GitHub repository
+- Synthesizes the CDK app
+- Deploys the infrastructure to AWS
+
+## Screenshots
+
+### CodePipeline Execution
+![CodePipeline Execution](screenshots/pipeline-success.png)
+
+### Step Functions Execution
+![Step Functions Execution](screenshots/stepfunctions-graph.png)
+
+### CloudWatch Logs
+![CloudWatch Logs](screenshots/cloudwatch-logs.png)
+
+## How to Deploy
+1. Clone this repository
+2. Install dependencies: `npm install`
+3. Bootstrap CDK: `cdk bootstrap`
+4. Deploy the pipeline: `cdk deploy PipelineStack`
+
+## Testing
+After deployment:
+1. Go to the Step Functions console
+2. Start an execution of the state machine
+3. Verify the execution completes successfully
+4. Check CloudWatch Logs for the Lambda function output
